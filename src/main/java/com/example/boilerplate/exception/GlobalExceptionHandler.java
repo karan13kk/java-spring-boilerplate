@@ -19,6 +19,23 @@ public class GlobalExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     /**
+     * Handle CustomError exceptions
+     */
+    @ExceptionHandler(CustomError.class)
+    public ResponseEntity<Map<String, Object>> handleCustomError(CustomError ex, WebRequest request) {
+        logger.warn("Custom error occurred: {} - {}", ex.getErrorCode(), ex.getMessage(), ex);
+        
+        Map<String, Object> errorResponse = createErrorResponse(
+            ex.getErrorCode().name(),
+            ex.getMessage(),
+            HttpStatus.BAD_REQUEST.value(),
+            request.getDescription(false)
+        );
+        
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    /**
      * Handle generic exceptions
      */
     @ExceptionHandler(Exception.class)
@@ -40,7 +57,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(NoHandlerFoundException.class)
     public ResponseEntity<Map<String, Object>> handleNoHandlerFoundException(NoHandlerFoundException ex, WebRequest request) {
-        logger.warn("No handler found for {} {}", ex.getHttpMethod(), ex.getRequestURL());
+        logger.warn("No handler found for {} {} - {}", ex.getHttpMethod(), ex.getRequestURL(), ex.getMessage(), ex);
         
         Map<String, Object> errorResponse = createErrorResponse(
             "NOT_FOUND",
@@ -57,11 +74,11 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> handleIllegalArgumentException(IllegalArgumentException ex, WebRequest request) {
-        logger.warn("Illegal argument provided: {}", ex.getMessage());
+        logger.warn("Illegal argument provided: {} - {}", ex.getMessage(), ex);
         
         Map<String, Object> errorResponse = createErrorResponse(
             "BAD_REQUEST",
-            ex.getMessage(),
+            "An invalid request was made",
             HttpStatus.BAD_REQUEST.value(),
             request.getDescription(false)
         );
