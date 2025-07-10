@@ -14,7 +14,7 @@ public interface ApplicationDetailsRepository extends JpaRepository<ApplicationD
     /**
      * Find application details by application name
      */
-    Optional<ApplicationDetails> findByApplicationName(String applicationName);
+    Optional<ApplicationDetails> findFirstByOrderByIdDesc();
 
     /**
      * Find application details by application name and environment
