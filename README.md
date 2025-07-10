@@ -8,7 +8,8 @@ A production-ready Spring Boot boilerplate application with comprehensive loggin
 - **H2 In-Memory Database** for development (PostgreSQL ready for production)
 - **Log4j2** with structured JSON logging and trace/request ID support
 - **Spring Boot Actuator** for health checks and monitoring
-- **Global Exception Handling** with standardized error responses
+- **Custom Error Handling** with business logic error codes and standardized responses
+- **Global Exception Handler** with comprehensive logging and secure client responses
 - **JPA/Hibernate** with automatic schema generation
 - **MapStruct** for object mapping with DTOs
 - **Lombok** for reducing boilerplate code
@@ -52,6 +53,8 @@ src/main/java/com/example/boilerplate/
 ├── mapper/
 │   └── ApplicationDetailsMapper.java    # MapStruct mapper
 └── exception/
+    ├── CustomError.java                 # Custom business logic exceptions
+    ├── ErrorCode.java                   # Standardized error code enum
     └── GlobalExceptionHandler.java      # Global error handling
 ```
 
@@ -82,6 +85,10 @@ The application will start on `http://localhost:8080`
 - **GET** `/actuator/health` - Spring Boot Actuator health endpoint
 - **GET** `/actuator/info` - Application information
 - **GET** `/actuator/metrics` - Application metrics
+
+### Error Handling Demo
+- **GET** `/health/validate?applicationName={name}` - Validate application name (demonstrates CustomError)
+- **GET** `/health/business-rule?environment={env}` - Check business rules (demonstrates CustomError)
 
 ### Database Console (Development)
 - **GET** `/h2-console` - H2 database web console
@@ -167,22 +174,72 @@ Example Response:
 
 ## 🚨 Error Handling
 
-### Global Exception Handler
-- **Generic exceptions**: 500 Internal Server Error
-- **404 Not Found**: Custom error response
-- **IllegalArgumentException**: 400 Bad Request
-- **Standardized error format** with timestamp, status, and message
+### Custom Error System
+The application uses a custom error handling system for business logic errors:
 
-### Error Response Format
+#### ErrorCode Enum
+```java
+public enum ErrorCode {
+    INVALID_PAYLOAD,
+    USER_NOT_AUTHORIZED,
+    BUSINESS_RULE_VIOLATION,
+    DUPLICATE_ENTRY,
+    INVALID_STATE,
+    RESOURCE_NOT_FOUND
+}
+```
+
+#### CustomError Usage
+```java
+// Instead of: throw new IllegalArgumentException("Invalid input");
+throw new CustomError(ErrorCode.INVALID_PAYLOAD, "Invalid payload provided");
+throw new CustomError(ErrorCode.BUSINESS_RULE_VIOLATION, "Business rule validation failed");
+```
+
+### Global Exception Handler
+- **CustomError**: Returns specific error message with error code (400 Bad Request)
+- **Generic exceptions**: 500 Internal Server Error with generic message
+- **404 Not Found**: Custom error response
+- **IllegalArgumentException**: 400 Bad Request with generic message
+- **Comprehensive logging** with stack traces (server-side only)
+- **Secure responses** - No stack traces sent to clients
+
+### Error Response Examples
+
+#### CustomError Response
 ```json
 {
   "timestamp": "2024-01-15T10:30:00",
-  "status": 404,
-  "error": "NOT_FOUND",
-  "message": "The requested resource was not found",
-  "path": "/api/nonexistent",
+  "status": 400,
+  "error": "INVALID_PAYLOAD",
+  "message": "Application name cannot be null or empty",
+  "path": "/health/validate",
   "application": "boilerplate"
 }
+```
+
+#### Generic Error Response
+```json
+{
+  "timestamp": "2024-01-15T10:30:00",
+  "status": 400,
+  "error": "BAD_REQUEST",
+  "message": "An invalid request was made",
+  "path": "/health/validate",
+  "application": "boilerplate"
+}
+```
+
+### Testing Error Handling
+```bash
+# Test CustomError - Invalid application name
+curl "http://localhost:8080/health/validate?applicationName="
+
+# Test CustomError - Business rule violation
+curl "http://localhost:8080/health/business-rule?environment=production"
+
+# Test 404 Not Found
+curl "http://localhost:8080/nonexistent-endpoint"
 ```
 
 ## 🏗️ Architecture
@@ -200,6 +257,7 @@ Example Response:
 - **Service Layer Pattern** - Business logic encapsulation
 - **DTO Pattern** - Data transfer object separation
 - **Global Exception Handler** - Centralized error handling
+- **Custom Error Pattern** - Business logic error handling with standardized codes
 
 ## 🧪 Testing
 
