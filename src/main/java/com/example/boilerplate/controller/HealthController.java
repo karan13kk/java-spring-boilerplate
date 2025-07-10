@@ -1,5 +1,7 @@
 package com.example.boilerplate.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,13 +15,19 @@ import java.util.Map;
 @RequestMapping("/health")
 public class HealthController {
 
+    private static final Logger logger = LoggerFactory.getLogger(HealthController.class);
+
     @GetMapping
     public ResponseEntity<Map<String, Object>> healthCheck() {
+        logger.info("Health check requested");
+        
         Map<String, Object> response = new HashMap<>();
         response.put("status", "UP");
         response.put("timestamp", LocalDateTime.now());
         response.put("application", "boilerplate");
         response.put("version", "1.0.0");
+        
+        logger.info("Health check completed successfully");
         
         return ResponseEntity.ok(response);
     }

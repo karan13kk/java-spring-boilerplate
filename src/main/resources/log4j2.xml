@@ -1,21 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="WARN" monitorInterval="30">
     <Properties>
-        <Property name="LOG_PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n</Property>
         <Property name="LOG_FILE_PATH">logs</Property>
     </Properties>
 
     <Appenders>
-        <!-- Console Appender with JSON Layout -->
+        <!-- Console Appender with Detailed JSON Layout -->
         <Console name="Console" target="SYSTEM_OUT">
             <JsonLayout complete="false" compact="true" eventEol="true" objectMessageAsJsonObject="true">
-                <KeyValuePair key="timestamp" value="$${date:yyyy-MM-dd'T'HH:mm:ss.SSS'Z'}" />
-                <KeyValuePair key="level" value="$${level}" />
-                <KeyValuePair key="logger" value="$${logger}" />
-                <KeyValuePair key="thread" value="$${thread}" />
-                <KeyValuePair key="traceId" value="$${ctx:traceId:-}" />
-                <KeyValuePair key="requestId" value="$${ctx:requestId:-}" />
-                <KeyValuePair key="userId" value="$${ctx:userId:-}" />
+                <KeyValuePair key="traceId" value="${ctx:traceId:-}" />
+                <KeyValuePair key="requestId" value="${ctx:requestId:-}" />
             </JsonLayout>
         </Console>
 
@@ -23,13 +17,8 @@
         <RollingFile name="FileAppender" fileName="${LOG_FILE_PATH}/application.log"
                      filePattern="${LOG_FILE_PATH}/application-%d{yyyy-MM-dd}-%i.log.gz">
             <JsonLayout complete="false" compact="true" eventEol="true" objectMessageAsJsonObject="true">
-                <KeyValuePair key="timestamp" value="$${date:yyyy-MM-dd'T'HH:mm:ss.SSS'Z'}" />
-                <KeyValuePair key="level" value="$${level}" />
-                <KeyValuePair key="logger" value="$${logger}" />
-                <KeyValuePair key="thread" value="$${thread}" />
-                <KeyValuePair key="traceId" value="$${ctx:traceId:-}" />
-                <KeyValuePair key="requestId" value="$${ctx:requestId:-}" />
-                <KeyValuePair key="userId" value="$${ctx:userId:-}" />
+                <KeyValuePair key="traceId" value="${ctx:traceId:-}" />
+                <KeyValuePair key="requestId" value="${ctx:requestId:-}" />
             </JsonLayout>
             <Policies>
                 <TimeBasedTriggeringPolicy />
@@ -38,17 +27,13 @@
             <DefaultRolloverStrategy max="10" />
         </RollingFile>
 
-        <!-- Error File Appender -->
+        <!-- Error File Appender - Only ERROR and FATAL -->
         <RollingFile name="ErrorFileAppender" fileName="${LOG_FILE_PATH}/error.log"
                      filePattern="${LOG_FILE_PATH}/error-%d{yyyy-MM-dd}-%i.log.gz">
+            <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
             <JsonLayout complete="false" compact="true" eventEol="true" objectMessageAsJsonObject="true">
-                <KeyValuePair key="timestamp" value="$${date:yyyy-MM-dd'T'HH:mm:ss.SSS'Z'}" />
-                <KeyValuePair key="level" value="$${level}" />
-                <KeyValuePair key="logger" value="$${logger}" />
-                <KeyValuePair key="thread" value="$${thread}" />
-                <KeyValuePair key="traceId" value="$${ctx:traceId:-}" />
-                <KeyValuePair key="requestId" value="$${ctx:requestId:-}" />
-                <KeyValuePair key="userId" value="$${ctx:userId:-}" />
+                <KeyValuePair key="traceId" value="${ctx:traceId:-}" />
+                <KeyValuePair key="requestId" value="${ctx:requestId:-}" />
             </JsonLayout>
             <Policies>
                 <TimeBasedTriggeringPolicy />
@@ -59,14 +44,10 @@
     </Appenders>
 
     <Loggers>
-        <!-- Application Loggers -->
+        <!-- Application Logger - handles all levels -->
         <Logger name="com.example.boilerplate" level="INFO" additivity="false">
             <AppenderRef ref="Console" />
             <AppenderRef ref="FileAppender" />
-        </Logger>
-
-        <!-- Error Logger -->
-        <Logger name="com.example.boilerplate" level="ERROR" additivity="false">
             <AppenderRef ref="ErrorFileAppender" />
         </Logger>
 
@@ -88,4 +69,4 @@
             <AppenderRef ref="FileAppender" />
         </Root>
     </Loggers>
-</Configuration> 
+</Configuration>
