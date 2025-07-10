@@ -4,7 +4,6 @@ import com.example.boilerplate.dto.HealthCheckResponse;
 import com.example.boilerplate.entity.ApplicationDetails;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 
 import java.time.LocalDateTime;
 
@@ -15,24 +14,17 @@ public interface ApplicationDetailsMapper {
      * Map ApplicationDetails entity to HealthCheckResponse DTO
      */
     @Mapping(target = "status", constant = "UP")
-    @Mapping(target = "timestamp", source = "timestamp", qualifiedByName = "currentTimestamp")
+    @Mapping(target = "timestamp", expression = "java(java.time.LocalDateTime.now())")
     @Mapping(target = "application", source = "applicationName")
     HealthCheckResponse toHealthCheckResponse(ApplicationDetails entity);
 
     /**
      * Map ApplicationDetails entity to HealthCheckResponse DTO with custom status
      */
-    @Mapping(target = "timestamp", source = "timestamp", qualifiedByName = "currentTimestamp")
-    @Mapping(target = "application", source = "applicationName")
+    @Mapping(target = "status", source = "status")
+    @Mapping(target = "timestamp", expression = "java(java.time.LocalDateTime.now())")
+    @Mapping(target = "application", source = "entity.applicationName")
     HealthCheckResponse toHealthCheckResponse(ApplicationDetails entity, String status);
-
-    /**
-     * Custom mapping for timestamp - always use current time for health check
-     */
-    @Named("currentTimestamp")
-    default LocalDateTime currentTimestamp(LocalDateTime timestamp) {
-        return LocalDateTime.now();
-    }
 
     /**
      * Map ApplicationDetails entity to HealthCheckResponse DTO with fallback values
